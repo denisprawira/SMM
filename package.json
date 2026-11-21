@@ -1,0 +1,11 @@
+{
+  "name": "smm",
+  "private": true,
+  "packageManager": "pnpm@9.12.2",
+  "scripts": {
+    "dev": "pnpm --filter @smm/web dev",
+    "build": "pnpm --filter @smm/web build",
+    "preview": "pnpm --filter @smm/web preview",
+    "lint": "pnpm -r lint"
+  }
+}

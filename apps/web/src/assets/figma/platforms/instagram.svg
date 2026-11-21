@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Platform Logo">
+<rect width="24" height="24" rx="6" fill="url(#paint0_linear_0_442)"/>
+<path id="Vector" d="M9.5 5.5H14.5C16.7091 5.5 18.5 7.29086 18.5 9.5V14.5C18.5 16.7091 16.7091 18.5 14.5 18.5H9.5C7.29086 18.5 5.5 16.7091 5.5 14.5V9.5C5.5 7.29086 7.29086 5.5 9.5 5.5Z" stroke-width="1.8" stroke="white"/>
+<path id="Vector_2" d="M15.1 12C15.1 13.7121 13.7121 15.1 12 15.1C10.2879 15.1 8.9 13.7121 8.9 12C8.9 10.2879 10.2879 8.9 12 8.9C13.7121 8.9 15.1 10.2879 15.1 12Z" stroke-width="1.8" stroke="white"/>
+<path id="Vector_3" d="M15.7 9.3C16.2523 9.3 16.7 8.85228 16.7 8.3C16.7 7.74772 16.2523 7.3 15.7 7.3C15.1477 7.3 14.7 7.74772 14.7 8.3C14.7 8.85228 15.1477 9.3 15.7 9.3Z" fill="white"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_442" x1="3.42857" y1="3.42857" x2="20.5714" y2="20.5714" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FAB845"/>
+<stop offset="0.45" stop-color="#DE297A"/>
+<stop offset="1" stop-color="#8233B0"/>
+</linearGradient>
+</defs>
+</svg>
