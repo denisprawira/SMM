@@ -1,11 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/route-states'
+import { accountsQueryOptions, driveFilesQueryOptions } from '@/features/create-post/api'
+import { CreatePostLayout } from '@/features/create-post/flow-layout'
 
-/** Full-screen Create Post flow (no app sidebar). */
+/** Full-screen Create Post flow (no app sidebar); each step is a child route. */
 export const Route = createFileRoute('/create')({
-  component: () => (
-    <div className="flex min-h-dvh flex-col bg-canvas">
-      <PagePlaceholder title="Create post" />
-    </div>
-  ),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(driveFilesQueryOptions), context.queryClient.ensureQueryData(accountsQueryOptions)]),
+  head: () => ({ meta: [{ title: 'Create post · Relay' }] }),
+  component: CreatePostLayout,
 })

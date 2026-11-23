@@ -1,12 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/route-states'
-import { Topbar } from '@/components/layout/topbar'
+import { teamQueryOptions, workspaceSettingsQueryOptions } from '@/features/settings/api'
+import { WorkspaceSettingsPage } from '@/features/settings/workspace-page'
 
 export const Route = createFileRoute('/_app/settings/')({
-  component: () => (
-    <>
-      <Topbar breadcrumb={[{ label: 'Settings' }]} />
-      <PagePlaceholder title="Settings" />
-    </>
-  ),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(workspaceSettingsQueryOptions), context.queryClient.ensureQueryData(teamQueryOptions)]),
+  head: () => ({ meta: [{ title: 'Workspace & team · Settings · Relay' }] }),
+  component: WorkspaceSettingsPage,
 })

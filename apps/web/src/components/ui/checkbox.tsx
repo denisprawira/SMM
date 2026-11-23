@@ -1,38 +1,33 @@
-import checkIcon from '@/assets/figma/icons/check-inverse.svg'
-import { cn } from '@/lib/cn'
-import { Icon } from './icon'
+import * as React from "react"
+import { cn } from "@/lib/utils"
+import { CheckIcon, MinusIcon } from "lucide-react"
+import { Checkbox as CheckboxPrimitive } from "radix-ui"
 
-type CheckboxProps = {
-  checked: boolean
-  indeterminate?: boolean
-  onCheckedChange?: (checked: boolean) => void
-  className?: string
-  'aria-label'?: string
-  disabled?: boolean
-}
-
-/** Figma "Checkbox" — unchecked / checked / indeterminate. */
-export function Checkbox({ checked, indeterminate = false, onCheckedChange, className, disabled, 'aria-label': ariaLabel }: CheckboxProps) {
-  const on = checked || indeterminate
+function Checkbox({
+  className,
+  ...props
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={indeterminate ? 'mixed' : checked}
-      aria-label={ariaLabel}
-      disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation()
-        onCheckedChange?.(!checked)
-      }}
+    <CheckboxPrimitive.Root
+      data-slot="checkbox"
       className={cn(
-        'inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-sm outline-none focus-visible:shadow-focus disabled:opacity-50',
-        on ? 'bg-accent' : 'border border-strong bg-surface',
-        className,
+        "peer size-4 shrink-0 rounded-sm border border-strong bg-background transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=indeterminate]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground",
+        className
       )}
+      {...props}
     >
-      {checked && !indeterminate && <Icon src={checkIcon} size={12} />}
-      {indeterminate && <span className="h-0.5 w-2 rounded-[1px] bg-surface" />}
-    </button>
+      <CheckboxPrimitive.Indicator
+        data-slot="checkbox-indicator"
+        className="grid place-content-center text-current transition-none"
+      >
+        {props.checked === "indeterminate" ? (
+          <MinusIcon className="size-3" strokeWidth={3} />
+        ) : (
+          <CheckIcon className="size-3" strokeWidth={3} />
+        )}
+      </CheckboxPrimitive.Indicator>
+    </CheckboxPrimitive.Root>
   )
 }
+
+export { Checkbox }

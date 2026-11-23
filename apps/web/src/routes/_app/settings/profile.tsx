@@ -1,12 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/route-states'
-import { Topbar } from '@/components/layout/topbar'
+import { notificationsQueryOptions, profileQueryOptions, workspaceSettingsQueryOptions } from '@/features/settings/api'
+import { ProfileSettingsPage } from '@/features/settings/profile-page'
 
 export const Route = createFileRoute('/_app/settings/profile')({
-  component: () => (
-    <>
-      <Topbar breadcrumb={[{ label: 'Settings', to: '/settings' }, { label: 'Profile' }]} />
-      <PagePlaceholder title="Profile & Notifications" />
-    </>
-  ),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(profileQueryOptions),
+      context.queryClient.ensureQueryData(notificationsQueryOptions),
+      // The time zone select labels its first option with the workspace default.
+      context.queryClient.ensureQueryData(workspaceSettingsQueryOptions),
+    ]),
+  head: () => ({ meta: [{ title: 'Profile & notifications · Settings · Relay' }] }),
+  component: ProfileSettingsPage,
 })

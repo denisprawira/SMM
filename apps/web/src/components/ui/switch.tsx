@@ -1,28 +1,32 @@
-import switchOff from '@/assets/figma/controls/switch-off.svg'
-import switchOn from '@/assets/figma/controls/switch-on.svg'
-import { cn } from '@/lib/cn'
+import * as React from "react"
+import { cn } from "@/lib/utils"
+import { Switch as SwitchPrimitive } from "radix-ui"
 
-type SwitchProps = {
-  checked: boolean
-  onCheckedChange?: (checked: boolean) => void
-  className?: string
-  'aria-label'?: string
-  disabled?: boolean
-}
-
-/** Figma "Switch" — 32×18. */
-export function Switch({ checked, onCheckedChange, className, disabled, 'aria-label': ariaLabel }: SwitchProps) {
+function Switch({
+  className,
+  size = "default",
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root> & {
+  size?: "sm" | "default"
+}) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={ariaLabel}
-      disabled={disabled}
-      onClick={() => onCheckedChange?.(!checked)}
-      className={cn('inline-flex h-[18px] w-8 shrink-0 rounded-full outline-none focus-visible:shadow-focus disabled:opacity-50', className)}
+    <SwitchPrimitive.Root
+      data-slot="switch"
+      data-size={size}
+      className={cn(
+        "peer group/switch inline-flex shrink-0 items-center rounded-full p-0.5 transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-[18px] data-[size=default]:w-8 data-[size=sm]:h-3.5 data-[size=sm]:w-6 data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted",
+        className
+      )}
+      {...props}
     >
-      <img src={checked ? switchOn : switchOff} alt="" aria-hidden width={32} height={18} className="h-[18px] w-8" draggable={false} />
-    </button>
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className={cn(
+          "pointer-events-none block rounded-full bg-white shadow-[0_1px_2px_rgb(0_0_0/0.15)] ring-0 transition-transform group-data-[size=default]/switch:size-3.5 group-data-[size=sm]/switch:size-2.5 group-data-[size=default]/switch:data-[state=checked]:translate-x-3.5 group-data-[size=sm]/switch:data-[state=checked]:translate-x-2.5 data-[state=unchecked]:translate-x-0"
+        )}
+      />
+    </SwitchPrimitive.Root>
   )
 }
+
+export { Switch }

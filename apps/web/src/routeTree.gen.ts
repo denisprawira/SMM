@@ -17,7 +17,17 @@ import { Route as AppAnalyticsRouteImport } from './routes/_app/analytics'
 import { Route as AppCalendarRouteImport } from './routes/_app/calendar'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppMonitoringRouteImport } from './routes/_app/monitoring'
+import { Route as CreateIndexRouteImport } from './routes/create/index'
+import { Route as CreateAccountsRouteImport } from './routes/create/accounts'
+import { Route as CreateCustomizeRouteImport } from './routes/create/customize'
+import { Route as CreateMediaRouteImport } from './routes/create/media'
+import { Route as CreateReviewRouteImport } from './routes/create/review'
+import { Route as CreateScheduleRouteImport } from './routes/create/schedule'
+import { Route as AppAccountsConnectRouteImport } from './routes/_app/accounts/connect'
+import { Route as AppLibraryBrowseRouteImport } from './routes/_app/library/browse'
+import { Route as AppMonitoringJobIdRouteImport } from './routes/_app/monitoring/$jobId'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app/settings/index'
+import { Route as AppSettingsBillingRouteImport } from './routes/_app/settings/billing'
 import { Route as AppSettingsProfileRouteImport } from './routes/_app/settings/profile'
 import { Route as AppSettingsIntegrationsIndexRouteImport } from './routes/_app/settings/integrations/index'
 import { Route as AppSettingsIntegrationsDriveRouteImport } from './routes/_app/settings/integrations/drive'
@@ -61,9 +71,59 @@ const AppMonitoringRoute = AppMonitoringRouteImport.update({
   path: '/monitoring',
   getParentRoute: () => AppRoute,
 } as any)
+const CreateIndexRoute = CreateIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CreateRoute,
+} as any)
+const CreateAccountsRoute = CreateAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => CreateRoute,
+} as any)
+const CreateCustomizeRoute = CreateCustomizeRouteImport.update({
+  id: '/customize',
+  path: '/customize',
+  getParentRoute: () => CreateRoute,
+} as any)
+const CreateMediaRoute = CreateMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => CreateRoute,
+} as any)
+const CreateReviewRoute = CreateReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => CreateRoute,
+} as any)
+const CreateScheduleRoute = CreateScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => CreateRoute,
+} as any)
+const AppAccountsConnectRoute = AppAccountsConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
+  getParentRoute: () => AppAccountsRoute,
+} as any)
+const AppLibraryBrowseRoute = AppLibraryBrowseRouteImport.update({
+  id: '/browse',
+  path: '/browse',
+  getParentRoute: () => AppLibraryRoute,
+} as any)
+const AppMonitoringJobIdRoute = AppMonitoringJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => AppMonitoringRoute,
+} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsBillingRoute = AppSettingsBillingRouteImport.update({
+  id: '/settings/billing',
+  path: '/settings/billing',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsProfileRoute = AppSettingsProfileRouteImport.update({
@@ -86,25 +146,44 @@ const AppSettingsIntegrationsDriveRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/create': typeof CreateRoute
-  '/accounts': typeof AppAccountsRoute
+  '/create': typeof CreateRouteWithChildren
+  '/accounts': typeof AppAccountsRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
   '/calendar': typeof AppCalendarRoute
-  '/library': typeof AppLibraryRoute
-  '/monitoring': typeof AppMonitoringRoute
+  '/library': typeof AppLibraryRouteWithChildren
+  '/monitoring': typeof AppMonitoringRouteWithChildren
+  '/create/accounts': typeof CreateAccountsRoute
+  '/create/customize': typeof CreateCustomizeRoute
+  '/create/media': typeof CreateMediaRoute
+  '/create/review': typeof CreateReviewRoute
+  '/create/schedule': typeof CreateScheduleRoute
+  '/create/': typeof CreateIndexRoute
+  '/accounts/connect': typeof AppAccountsConnectRoute
+  '/library/browse': typeof AppLibraryBrowseRoute
+  '/monitoring/$jobId': typeof AppMonitoringJobIdRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/profile': typeof AppSettingsProfileRoute
   '/settings/': typeof AppSettingsIndexRoute
   '/settings/integrations/drive': typeof AppSettingsIntegrationsDriveRoute
   '/settings/integrations/': typeof AppSettingsIntegrationsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/create': typeof CreateRoute
-  '/accounts': typeof AppAccountsRoute
+  '/accounts': typeof AppAccountsRouteWithChildren
   '/analytics': typeof AppAnalyticsRoute
   '/calendar': typeof AppCalendarRoute
-  '/library': typeof AppLibraryRoute
-  '/monitoring': typeof AppMonitoringRoute
+  '/library': typeof AppLibraryRouteWithChildren
+  '/monitoring': typeof AppMonitoringRouteWithChildren
+  '/create/accounts': typeof CreateAccountsRoute
+  '/create/customize': typeof CreateCustomizeRoute
+  '/create/media': typeof CreateMediaRoute
+  '/create/review': typeof CreateReviewRoute
+  '/create/schedule': typeof CreateScheduleRoute
   '/': typeof AppIndexRoute
+  '/create': typeof CreateIndexRoute
+  '/accounts/connect': typeof AppAccountsConnectRoute
+  '/library/browse': typeof AppLibraryBrowseRoute
+  '/monitoring/$jobId': typeof AppMonitoringJobIdRoute
+  '/settings/billing': typeof AppSettingsBillingRoute
   '/settings/profile': typeof AppSettingsProfileRoute
   '/settings': typeof AppSettingsIndexRoute
   '/settings/integrations/drive': typeof AppSettingsIntegrationsDriveRoute
@@ -113,13 +192,23 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/create': typeof CreateRoute
-  '/_app/accounts': typeof AppAccountsRoute
+  '/create': typeof CreateRouteWithChildren
+  '/_app/accounts': typeof AppAccountsRouteWithChildren
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/calendar': typeof AppCalendarRoute
-  '/_app/library': typeof AppLibraryRoute
-  '/_app/monitoring': typeof AppMonitoringRoute
+  '/_app/library': typeof AppLibraryRouteWithChildren
+  '/_app/monitoring': typeof AppMonitoringRouteWithChildren
+  '/create/accounts': typeof CreateAccountsRoute
+  '/create/customize': typeof CreateCustomizeRoute
+  '/create/media': typeof CreateMediaRoute
+  '/create/review': typeof CreateReviewRoute
+  '/create/schedule': typeof CreateScheduleRoute
   '/_app/': typeof AppIndexRoute
+  '/create/': typeof CreateIndexRoute
+  '/_app/accounts/connect': typeof AppAccountsConnectRoute
+  '/_app/library/browse': typeof AppLibraryBrowseRoute
+  '/_app/monitoring/$jobId': typeof AppMonitoringJobIdRoute
+  '/_app/settings/billing': typeof AppSettingsBillingRoute
   '/_app/settings/profile': typeof AppSettingsProfileRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/settings/integrations/drive': typeof AppSettingsIntegrationsDriveRoute
@@ -135,19 +224,38 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/library'
     | '/monitoring'
+    | '/create/accounts'
+    | '/create/customize'
+    | '/create/media'
+    | '/create/review'
+    | '/create/schedule'
+    | '/create/'
+    | '/accounts/connect'
+    | '/library/browse'
+    | '/monitoring/$jobId'
+    | '/settings/billing'
     | '/settings/profile'
     | '/settings/'
     | '/settings/integrations/drive'
     | '/settings/integrations/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/create'
     | '/accounts'
     | '/analytics'
     | '/calendar'
     | '/library'
     | '/monitoring'
+    | '/create/accounts'
+    | '/create/customize'
+    | '/create/media'
+    | '/create/review'
+    | '/create/schedule'
     | '/'
+    | '/create'
+    | '/accounts/connect'
+    | '/library/browse'
+    | '/monitoring/$jobId'
+    | '/settings/billing'
     | '/settings/profile'
     | '/settings'
     | '/settings/integrations/drive'
@@ -161,7 +269,17 @@ export interface FileRouteTypes {
     | '/_app/calendar'
     | '/_app/library'
     | '/_app/monitoring'
+    | '/create/accounts'
+    | '/create/customize'
+    | '/create/media'
+    | '/create/review'
+    | '/create/schedule'
     | '/_app/'
+    | '/create/'
+    | '/_app/accounts/connect'
+    | '/_app/library/browse'
+    | '/_app/monitoring/$jobId'
+    | '/_app/settings/billing'
     | '/_app/settings/profile'
     | '/_app/settings/'
     | '/_app/settings/integrations/drive'
@@ -170,7 +288,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
-  CreateRoute: typeof CreateRoute
+  CreateRoute: typeof CreateRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -231,11 +349,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMonitoringRouteImport
       parentRoute: typeof AppRoute
     }
+    '/create/': {
+      id: '/create/'
+      path: '/'
+      fullPath: '/create/'
+      preLoaderRoute: typeof CreateIndexRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/create/accounts': {
+      id: '/create/accounts'
+      path: '/accounts'
+      fullPath: '/create/accounts'
+      preLoaderRoute: typeof CreateAccountsRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/create/customize': {
+      id: '/create/customize'
+      path: '/customize'
+      fullPath: '/create/customize'
+      preLoaderRoute: typeof CreateCustomizeRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/create/media': {
+      id: '/create/media'
+      path: '/media'
+      fullPath: '/create/media'
+      preLoaderRoute: typeof CreateMediaRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/create/review': {
+      id: '/create/review'
+      path: '/review'
+      fullPath: '/create/review'
+      preLoaderRoute: typeof CreateReviewRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/create/schedule': {
+      id: '/create/schedule'
+      path: '/schedule'
+      fullPath: '/create/schedule'
+      preLoaderRoute: typeof CreateScheduleRouteImport
+      parentRoute: typeof CreateRoute
+    }
+    '/_app/accounts/connect': {
+      id: '/_app/accounts/connect'
+      path: '/connect'
+      fullPath: '/accounts/connect'
+      preLoaderRoute: typeof AppAccountsConnectRouteImport
+      parentRoute: typeof AppAccountsRoute
+    }
+    '/_app/library/browse': {
+      id: '/_app/library/browse'
+      path: '/browse'
+      fullPath: '/library/browse'
+      preLoaderRoute: typeof AppLibraryBrowseRouteImport
+      parentRoute: typeof AppLibraryRoute
+    }
+    '/_app/monitoring/$jobId': {
+      id: '/_app/monitoring/$jobId'
+      path: '/$jobId'
+      fullPath: '/monitoring/$jobId'
+      preLoaderRoute: typeof AppMonitoringJobIdRouteImport
+      parentRoute: typeof AppMonitoringRoute
+    }
     '/_app/settings/': {
       id: '/_app/settings/'
       path: '/settings'
       fullPath: '/settings/'
       preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/billing': {
+      id: '/_app/settings/billing'
+      path: '/settings/billing'
+      fullPath: '/settings/billing'
+      preLoaderRoute: typeof AppSettingsBillingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings/profile': {
@@ -262,13 +450,50 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppAccountsRouteChildren {
+  AppAccountsConnectRoute: typeof AppAccountsConnectRoute
+}
+
+const AppAccountsRouteChildren: AppAccountsRouteChildren = {
+  AppAccountsConnectRoute: AppAccountsConnectRoute,
+}
+
+const AppAccountsRouteWithChildren = AppAccountsRoute._addFileChildren(
+  AppAccountsRouteChildren,
+)
+
+interface AppLibraryRouteChildren {
+  AppLibraryBrowseRoute: typeof AppLibraryBrowseRoute
+}
+
+const AppLibraryRouteChildren: AppLibraryRouteChildren = {
+  AppLibraryBrowseRoute: AppLibraryBrowseRoute,
+}
+
+const AppLibraryRouteWithChildren = AppLibraryRoute._addFileChildren(
+  AppLibraryRouteChildren,
+)
+
+interface AppMonitoringRouteChildren {
+  AppMonitoringJobIdRoute: typeof AppMonitoringJobIdRoute
+}
+
+const AppMonitoringRouteChildren: AppMonitoringRouteChildren = {
+  AppMonitoringJobIdRoute: AppMonitoringJobIdRoute,
+}
+
+const AppMonitoringRouteWithChildren = AppMonitoringRoute._addFileChildren(
+  AppMonitoringRouteChildren,
+)
+
 interface AppRouteChildren {
-  AppAccountsRoute: typeof AppAccountsRoute
+  AppAccountsRoute: typeof AppAccountsRouteWithChildren
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppCalendarRoute: typeof AppCalendarRoute
-  AppLibraryRoute: typeof AppLibraryRoute
-  AppMonitoringRoute: typeof AppMonitoringRoute
+  AppLibraryRoute: typeof AppLibraryRouteWithChildren
+  AppMonitoringRoute: typeof AppMonitoringRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
+  AppSettingsBillingRoute: typeof AppSettingsBillingRoute
   AppSettingsProfileRoute: typeof AppSettingsProfileRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
   AppSettingsIntegrationsDriveRoute: typeof AppSettingsIntegrationsDriveRoute
@@ -276,12 +501,13 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAccountsRoute: AppAccountsRoute,
+  AppAccountsRoute: AppAccountsRouteWithChildren,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppCalendarRoute: AppCalendarRoute,
-  AppLibraryRoute: AppLibraryRoute,
-  AppMonitoringRoute: AppMonitoringRoute,
+  AppLibraryRoute: AppLibraryRouteWithChildren,
+  AppMonitoringRoute: AppMonitoringRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
+  AppSettingsBillingRoute: AppSettingsBillingRoute,
   AppSettingsProfileRoute: AppSettingsProfileRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
   AppSettingsIntegrationsDriveRoute: AppSettingsIntegrationsDriveRoute,
@@ -290,9 +516,30 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface CreateRouteChildren {
+  CreateAccountsRoute: typeof CreateAccountsRoute
+  CreateCustomizeRoute: typeof CreateCustomizeRoute
+  CreateMediaRoute: typeof CreateMediaRoute
+  CreateReviewRoute: typeof CreateReviewRoute
+  CreateScheduleRoute: typeof CreateScheduleRoute
+  CreateIndexRoute: typeof CreateIndexRoute
+}
+
+const CreateRouteChildren: CreateRouteChildren = {
+  CreateAccountsRoute: CreateAccountsRoute,
+  CreateCustomizeRoute: CreateCustomizeRoute,
+  CreateMediaRoute: CreateMediaRoute,
+  CreateReviewRoute: CreateReviewRoute,
+  CreateScheduleRoute: CreateScheduleRoute,
+  CreateIndexRoute: CreateIndexRoute,
+}
+
+const CreateRouteWithChildren =
+  CreateRoute._addFileChildren(CreateRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
-  CreateRoute: CreateRoute,
+  CreateRoute: CreateRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

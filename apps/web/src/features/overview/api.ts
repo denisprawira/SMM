@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from '@/components/ui'
+import { toast } from 'sonner'
 import { mockRequest } from '@/lib/api'
 import type { Platform, ThumbnailTone } from '@/lib/types'
 
@@ -29,6 +29,15 @@ export type PostSummary = {
   platforms: Platform[]
 }
 
+/** One day of the "Views & engagement" chart. */
+export type TrendPoint = {
+  date: string
+  views: number
+  engagement: number
+  /** Normalised 0–200 shape of the compact tablet/mobile "Views" sparkline (Figma draws it without the Nov 10 spike). */
+  spark: number
+}
+
 export type OverviewData = {
   metrics: {
     published: { value: number; delta: number }
@@ -39,6 +48,7 @@ export type OverviewData = {
     engagementRate: { value: number; deltaPt: number }
   }
   platformSplit: { platform: Platform; value: string; deltaPct: number }[]
+  trend: TrendPoint[]
   attention: AttentionItem[]
   upcoming: PostSummary[]
   recent: (PostSummary & { meta: string })[]
@@ -53,10 +63,20 @@ export const ACCOUNT_OPTIONS = [
 
 /* ── Mock database ─────────────────────────────────────────────────── */
 
+/** Daily views / engagement (thousands), Oct 23 – Nov 21 — the curves drawn in Figma. */
+const VIEWS_K = [32.0, 38.9, 38.4, 38.7, 44.0, 44.7, 38.9, 37.2, 39.5, 36.5, 31.6, 34.5, 39.7, 39.3, 40.4, 48.3, 53.5, 51.9, 67.1, 57.9, 56.3, 50.3, 50.0, 51.9, 47.9, 44.6, 49.5, 54.1, 53.2, 56.0]
+/** Tablet/mobile sparkline shape, read off the Figma vectors (y inverted on a 200px box). */
+const SPARK = [100.6, 122.0, 120.6, 121.6, 138.2, 140.4, 122.1, 116.7, 124.0, 114.4, 99.2, 108.3, 124.7, 123.3, 126.7, 151.6, 167.8, 162.8, 166.6, 181.8, 176.8, 157.8, 156.9, 163.0, 150.2, 140.1, 155.2, 169.6, 167.0, 175.8]
+const ENGAGEMENT_K = [12.3, 12.0, 11.0, 11.2, 12.5, 12.7, 11.1, 9.3, 9.3, 10.3, 10.4, 9.1, 8.4, 9.6, 11.8, 12.6, 12.3, 12.6, 14.6, 16.7, 17.1, 16.1, 15.8, 17.0, 17.8, 16.7, 14.7, 14.1, 14.9, 15.5]
+const TREND: TrendPoint[] = VIEWS_K.map((v, i) => {
+  const date = new Date(Date.UTC(2025, 9, 23 + i)).toISOString().slice(0, 10)
+  return { date, views: Math.round(v * 1000), engagement: Math.round(ENGAGEMENT_K[i] * 1000), spark: SPARK[i] }
+})
+
 let attentionDb: AttentionItem[] = [
-  { id: 'job_8f21c', kind: 'failed', platform: 'tiktok', title: 'Spring drop teaser', context: 'TikTok · @northwind.studio', reason: 'Video exceeds 10 min limit', action: 'retry' },
-  { id: 'job_7d104', kind: 'failed', platform: 'youtube', title: 'Behind the seams ep. 4', context: 'YouTube · Northwind Studio', reason: 'Daily upload quota exceeded', action: 'retry' },
-  { id: 'job_6a9e2', kind: 'failed', platform: 'facebook', title: 'Store opening recap', context: 'Facebook · Northwind Studio', reason: 'Page permission revoked', action: 'details' },
+  { id: 'job_8f21c4', kind: 'failed', platform: 'tiktok', title: 'Spring drop teaser', context: 'TikTok · @northwind.studio', reason: 'Video exceeds 10 min limit', action: 'retry' },
+  { id: 'job_7d1049', kind: 'failed', platform: 'youtube', title: 'Behind the seams ep. 4', context: 'YouTube · Northwind Studio', reason: 'Daily upload quota exceeded', action: 'retry' },
+  { id: 'job_6a9e21', kind: 'failed', platform: 'facebook', title: 'Store opening recap', context: 'Facebook · Northwind Studio', reason: 'Page permission revoked', action: 'details' },
   { id: 'acc_ig_shop', kind: 'reauth', platform: 'instagram', title: '@northwind.shop', context: 'Instagram · token expires in 2 days', reason: 'Token expires in 2 days', action: 'reconnect' },
   { id: 'acc_fb_outlet', kind: 'reauth', platform: 'facebook', title: 'Northwind Outlet', context: 'Facebook Page · token expired', reason: 'Token expired', action: 'reconnect' },
 ]
@@ -79,6 +99,7 @@ function buildOverview(): OverviewData {
       { platform: 'youtube', value: '198K', deltaPct: 4 },
       { platform: 'facebook', value: '86K', deltaPct: -6 },
     ],
+    trend: TREND,
     attention: attentionDb,
     upcoming: [
       { id: 'p1', title: 'Autumn lookbook reel', when: 'Today · 4:30 PM', whenShort: 'Today · 4:30 PM', tone: 'sunset', platforms: ['instagram', 'tiktok'] },
@@ -128,11 +149,11 @@ export function useResolveAttention() {
     },
     onError: (_err, _item, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data))
-      toast.error('Something went wrong', 'Please try again.')
+      toast.error('Something went wrong', { description: 'Please try again.', duration: Infinity })
     },
     onSuccess: (item) => {
       const copy = ACTION_COPY[item.action]
-      toast.success(copy.title, copy.description(item))
+      toast.success(copy.title, { description: copy.description(item) })
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['overview'] }),
   })

@@ -1,68 +1,160 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "@fontsource-variable/inter";
 
+@custom-variant dark (&:is(.dark *));
+
 /*
- * Relay design tokens — mirrored 1:1 from the Figma "Design system" page
- * (Foundations sheet + variables). Naming maps Figma variable groups onto
- * Tailwind namespaces so classes read like the design:
- *   bg/surface      → bg-surface        text/secondary → text-secondary
- *   border/strong   → border-strong     accent/subtle  → bg-accent-subtle
+ * Relay design tokens — Figma "Design system" → Foundations, mapped onto the
+ * shadcn/ui semantic names so every shadcn component picks them up.
+ *
+ *   Figma variable        Tailwind class
+ *   bg/canvas             bg-canvas
+ *   bg/surface            bg-background · bg-card · bg-surface
+ *   bg/subtle             bg-subtle  (= secondary / accent hover)
+ *   bg/muted              bg-muted
+ *   bg/inverse            bg-inverse
+ *   text/primary          text-foreground
+ *   text/secondary        text-muted-foreground
+ *   text/tertiary         text-tertiary
+ *   text/inverse          text-primary-foreground
+ *   border/default        border (default colour) · border-border
+ *   border/strong         border-strong
+ *   accent/default|hover  bg-primary · hover:bg-primary-hover
+ *   accent/subtle|text    bg-primary-subtle · text-primary-text
+ *   danger|success|warning|info /default|subtle|text
+ *                         bg-danger · bg-danger-subtle · text-danger-text (…)
+ *   platform/*            bg-platform-tiktok (…)
+ *   chart/1‥4, chart/grid var(--chart-1) ‥ var(--chart-grid)
  */
+:root {
+  --radius: 8px;
+
+  --canvas: #f7f7f8;
+  --background: #ffffff;
+  --foreground: #0f1115;
+  --card: #ffffff;
+  --card-foreground: #0f1115;
+  --popover: #ffffff;
+  --popover-foreground: #0f1115;
+
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --primary-hover: #4338ca;
+  --primary-subtle: #eef0ff;
+  --primary-text: #4338ca;
+
+  --secondary: #f4f5f7;
+  --secondary-foreground: #0f1115;
+  --subtle: #f4f5f7;
+  --muted: #eceef2;
+  --muted-foreground: #4b5160;
+  --tertiary: #8a8f9c;
+  --accent: #f4f5f7;
+  --accent-foreground: #0f1115;
+  --inverse: #0f1115;
+  --scrim: rgb(15 18 23 / 0.35);
+  --border-focus: #a5b4fc;
+
+  --destructive: #dc2626;
+  --danger: #dc2626;
+  --danger-subtle: #fef2f2;
+  --danger-text: #b91c1c;
+  --success: #16a34a;
+  --success-subtle: #ecfdf3;
+  --success-text: #15803d;
+  --warning: #d97706;
+  --warning-subtle: #fff7e6;
+  --warning-text: #b45309;
+  --info: #2563eb;
+  --info-subtle: #eff6ff;
+  --info-text: #1d4ed8;
+
+  --border: #e6e7eb;
+  --border-strong: #d5d7dd;
+  --input: #e6e7eb;
+  --ring: #4f46e5;
+
+  --chart-1: #4f46e5;
+  --chart-2: #0ea5e9;
+  --chart-3: #f59e0b;
+  --chart-4: #10b981;
+  --chart-5: #8a8f9c;
+  --chart-grid: #eef0f3;
+
+  --platform-tiktok: #111111;
+  --platform-instagram: #e1306c;
+  --platform-facebook: #1877f2;
+  --platform-youtube: #ff0000;
+  --platform-drive: #1fa463;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-background: var(--background);
+  --color-surface: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-text: var(--primary-text);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-subtle: var(--subtle);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-inverse: var(--inverse);
+  --color-scrim: var(--scrim);
+  --border-color-focus: var(--border-focus);
+
+  --color-destructive: var(--destructive);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-text: var(--danger-text);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-text: var(--warning-text);
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-text: var(--info-text);
+
+  --color-border: var(--border);
+  --border-color-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+
+  --color-platform-tiktok: var(--platform-tiktok);
+  --color-platform-instagram: var(--platform-instagram);
+  --color-platform-facebook: var(--platform-facebook);
+  --color-platform-youtube: var(--platform-youtube);
+  --color-platform-drive: var(--platform-drive);
+}
+
 @theme {
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* bg/* */
-  --background-color-canvas: #f7f7f8;
-  --background-color-surface: #ffffff;
-  --background-color-subtle: #f4f5f7;
-  --background-color-muted: #eceef2;
-  --background-color-inverse: #0f1115;
-
-  /* text/* */
-  --text-color-primary: #0f1115;
-  --text-color-secondary: #4b5160;
-  --text-color-tertiary: #8a8f9c;
-  --text-color-inverse: #ffffff;
-
-  /* border/* (plain `border` defaults to border/default, see base layer) */
-  --border-color-default: #e6e7eb;
-  --border-color-strong: #d5d7dd;
-  --border-color-focus: #a5b4fc;
-
-  /* accent/* */
-  --color-accent: #4f46e5;
-  --color-accent-hover: #4338ca;
-  --color-accent-subtle: #eef0ff;
-  --color-accent-text: #4338ca;
-
-  /* status */
-  --color-success: #16a34a;
-  --color-success-subtle: #ecfdf3;
-  --color-success-text: #15803d;
-  --color-warning: #d97706;
-  --color-warning-subtle: #fff7e6;
-  --color-warning-text: #b45309;
-  --color-danger: #dc2626;
-  --color-danger-subtle: #fef2f2;
-  --color-danger-text: #b91c1c;
-  --color-info: #2563eb;
-  --color-info-subtle: #eff6ff;
-  --color-info-text: #1d4ed8;
-
-  /* platforms & charts */
-  --color-platform-tiktok: #111111;
-  --color-platform-instagram: #e1306c;
-  --color-platform-facebook: #1877f2;
-  --color-platform-youtube: #ff0000;
-  --color-platform-drive: #1fa463;
-  --color-chart-1: #4f46e5;
-  --color-chart-2: #0ea5e9;
-  --color-chart-3: #f59e0b;
-  --color-chart-4: #10b981;
-  --color-chart-grid: #eef0f3;
-
-  /* Type styles (size / line-height / tracking / weight) */
+  /* Figma type styles (size / line-height / tracking / weight) */
   --text-display: 30px;
   --text-display--line-height: 36px;
   --text-display--font-weight: 600;
@@ -101,7 +193,7 @@
   --shadow-lg: 0 20px 48px -12px rgb(16 24 40 / 0.22), 0 4px 12px -4px rgb(16 24 40 / 0.08);
   --shadow-focus: 0 0 0 3px rgb(79 69 229 / 0.18);
 
-  /* Radius */
+  /* Radius (radius/sm … radius/xl) */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
@@ -109,12 +201,8 @@
 }
 
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--border-color-default);
+  * {
+    @apply border-border outline-ring/50;
   }
 
   html {
@@ -123,9 +211,7 @@
   }
 
   body {
-    background-color: var(--background-color-canvas);
-    color: var(--text-color-primary);
-    font-family: var(--font-sans);
+    @apply bg-canvas font-sans text-foreground;
   }
 
   button:not(:disabled),

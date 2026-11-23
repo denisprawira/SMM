@@ -1,48 +1,23 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import activityIcon from '@/assets/figma/icons/activity.svg'
-import alertCircleDanger from '@/assets/figma/icons/alert-circle-danger.svg'
-import alertTriangle from '@/assets/figma/icons/alert-triangle.svg'
-import alertTriangleWarning from '@/assets/figma/icons/alert-triangle-warning.svg'
-import arrowRight from '@/assets/figma/icons/arrow-right.svg'
-import calendarIcon from '@/assets/figma/icons/calendar.svg'
-import chevronRightWarning from '@/assets/figma/icons/chevron-right-warning.svg'
-import eyeIcon from '@/assets/figma/icons/eye.svg'
-import heartIcon from '@/assets/figma/icons/heart.svg'
-import plusInverse from '@/assets/figma/icons/plus-inverse.svg'
-import refreshWarning from '@/assets/figma/icons/refresh-warning.svg'
-import sendIcon from '@/assets/figma/icons/send.svg'
-import chartEngagement from '@/assets/figma/overview/chart-engagement.svg'
-import chartTablet from '@/assets/figma/overview/chart-tablet.svg'
-import chartViews from '@/assets/figma/overview/chart-views.svg'
-import sparklineMobile from '@/assets/figma/overview/sparkline-mobile.svg'
-import { PageContent } from '@/components/layout/app-shell'
+import { Activity, ArrowRight, Calendar, ChevronRight, CircleAlert, Eye, Heart, Plus, RefreshCw, Send, TriangleAlert } from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { Topbar } from '@/components/layout/topbar'
-import {
-  Button,
-  ButtonLink,
-  Card,
-  CardHeader,
-  Icon,
-  MetricCard,
-  PlatformLogo,
-  PlatformStack,
-  SegmentedControl,
-  Select,
-  StatusPill,
-  Thumbnail,
-} from '@/components/ui'
+import { MetricCard } from '@/components/metric-card'
+import { PageContent } from '@/components/page'
+import { PlatformLogo, PlatformStack } from '@/components/platform-logo'
+import { SegmentedControl } from '@/components/segmented-control'
+import { StatusPill } from '@/components/status-pill'
+import { Thumbnail } from '@/components/thumbnail'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useSession } from '@/features/session/api'
-import { cn } from '@/lib/cn'
 import { PLATFORM_LABEL } from '@/lib/types'
-import {
-  ACCOUNT_OPTIONS,
-  overviewQueryOptions,
-  useResolveAttention,
-  type AttentionItem,
-  type OverviewData,
-  type OverviewRange,
-} from './api'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { cn } from '@/lib/utils'
+import { ACCOUNT_OPTIONS, overviewQueryOptions, useResolveAttention, type AttentionItem, type OverviewData, type OverviewRange, type TrendPoint } from './api'
 
 const route = getRouteApi('/_app/')
 
@@ -70,12 +45,14 @@ export function OverviewPage() {
   const navigate = route.useNavigate()
   const { data } = useSuspenseQuery(overviewQueryOptions({ range, account }))
 
-  const setRange = (value: OverviewRange) =>
-    navigate({ search: (prev) => ({ ...prev, range: value === '30d' ? undefined : value }), replace: true })
-  const setAccount = (value: string) =>
-    navigate({ search: (prev) => ({ ...prev, account: value === 'all' ? undefined : value }), replace: true })
+  const setRange = (value: OverviewRange) => navigate({ search: (prev) => ({ ...prev, range: value === '30d' ? undefined : value }), replace: true })
+  const setAccount = (value: string) => navigate({ search: (prev) => ({ ...prev, account: value === 'all' ? undefined : value }), replace: true })
 
   const days = RANGE_DAYS[range]
+  const trend = data.trend.slice(-Math.min(days, data.trend.length))
+  // Charts measure their box, so only the breakpoint's variant is mounted (a display:none chart is 0×0).
+  const isDesktop = useMediaQuery('(min-width: 1280px)')
+  const isTablet = useMediaQuery('(min-width: 768px)') && !isDesktop
 
   return (
     <>
@@ -89,12 +66,12 @@ export function OverviewPage() {
         <MobileMetrics data={data} className="md:hidden" />
 
         <div className="hidden items-start gap-4 xl:flex">
-          <PerformanceCard data={data} days={days} account={account} className="flex-1" />
+          {isDesktop && <PerformanceCard data={data} trend={trend} days={days} account={account} className="flex-1" />}
           <AttentionCard items={data.attention} className="w-[372px] shrink-0" />
         </div>
-        <TrendCard variant="tablet" days={days} className="hidden md:flex xl:hidden" />
+        {isTablet && <TrendCard variant="tablet" trend={trend} days={days} className="hidden md:flex xl:hidden" />}
         <AttentionListCompact items={data.attention} className="hidden md:flex xl:hidden" />
-        <TrendCard variant="mobile" days={days} className="md:hidden" />
+        {!isDesktop && !isTablet && <TrendCard variant="mobile" trend={trend} days={days} className="md:hidden" />}
 
         <div className="hidden items-start gap-4 xl:flex">
           <UpcomingCard posts={data.upcoming} total={data.metrics.scheduled.value} className="flex-1" />
@@ -124,10 +101,10 @@ function OverviewHeader({
   return (
     <header className="flex flex-col gap-4 md:flex-row md:items-end md:gap-2.5 xl:gap-3">
       <div className="flex min-w-0 flex-col gap-0.5 md:gap-1">
-        <h1 className="text-h2 text-primary md:text-h1">
+        <h1 className="text-h2 text-foreground md:text-h1">
           {greeting()}, {session.user.firstName}
         </h1>
-        <p className="text-body-sm text-secondary md:text-body">
+        <p className="text-body-sm text-muted-foreground md:text-body">
           <span className="md:hidden">
             {n} accounts · {session.workspace.name}
           </span>
@@ -136,13 +113,27 @@ function OverviewHeader({
         </p>
       </div>
       <div className="hidden min-w-0 flex-1 md:block" />
-      <Select aria-label="Account" value={account} options={ACCOUNT_OPTIONS} onChange={onAccountChange} className="hidden xl:inline-flex" />
-      <SegmentedControl aria-label="Date range" value={range} options={RANGE_LONG} onChange={onRangeChange} className="hidden xl:inline-flex" />
-      <SegmentedControl aria-label="Date range" value={range} options={RANGE_SHORT} onChange={onRangeChange} className="hidden md:inline-flex xl:hidden" />
-      <ButtonLink to="/create" icon={plusInverse} className="hidden md:inline-flex xl:hidden">
-        Create post
-      </ButtonLink>
-      <SegmentedControl aria-label="Date range" value={range} options={RANGE_SHORT} onChange={onRangeChange} fill className="md:hidden" />
+      <Select value={account} onValueChange={onAccountChange}>
+        <SelectTrigger aria-label="Account" className="hidden xl:flex">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent position="popper" align="end">
+          {ACCOUNT_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <SegmentedControl aria-label="Date range" value={range} options={RANGE_LONG} onValueChange={onRangeChange} className="hidden xl:inline-flex" />
+      <SegmentedControl aria-label="Date range" value={range} options={RANGE_SHORT} onValueChange={onRangeChange} className="hidden md:inline-flex xl:hidden" />
+      <Button asChild className="hidden md:inline-flex xl:hidden">
+        <Link to="/create">
+          <Plus />
+          Create post
+        </Link>
+      </Button>
+      <SegmentedControl aria-label="Date range" value={range} options={RANGE_SHORT} onValueChange={onRangeChange} fill className="md:hidden" />
     </header>
   )
 }
@@ -153,16 +144,16 @@ function AttentionBanner({ data, className }: { data: OverviewData; className?: 
   if (total === 0) return null
   return (
     <Link to="/monitoring" className={cn('flex items-center gap-3 rounded-xl border border-warning bg-warning-subtle px-3.5 py-3', className)}>
-      <Icon src={alertTriangleWarning} size={18} />
+      <TriangleAlert aria-hidden className="size-[18px] shrink-0 text-warning" />
       <span className="flex min-w-0 flex-1 flex-col gap-px">
         <span className="text-body-sm font-medium text-warning-text">
           {total} {total === 1 ? 'item needs' : 'items need'} attention
         </span>
-        <span className="truncate text-caption text-secondary">
+        <span className="truncate text-caption text-muted-foreground">
           {failed} failed · {reauth} accounts need reauth
         </span>
       </span>
-      <Icon src={chevronRightWarning} size={16} />
+      <ChevronRight aria-hidden className="size-4 shrink-0 text-warning" />
     </Link>
   )
 }
@@ -174,20 +165,20 @@ function DesktopMetrics({ data, days, className }: { data: OverviewData; days: n
   const total = m.attention.failed + m.attention.reauth
   return (
     <div className={cn('items-stretch gap-4', className)}>
-      <MetricCard className="flex-1" label="Published" icon={sendIcon} value={String(m.published.value)} trend="up" delta={`+${m.published.delta}`} compare={`posts vs. prev. ${days} days`} />
-      <MetricCard className="flex-1" label="Scheduled" icon={calendarIcon} value={String(m.scheduled.value)} trend="neutral" delta="Next" compare={m.scheduled.nextLabel} />
+      <MetricCard className="flex-1" label="Published" icon={Send} value={String(m.published.value)} trend="up" delta={`+${m.published.delta}`} compare={`posts vs. prev. ${days} days`} />
+      <MetricCard className="flex-1" label="Scheduled" icon={Calendar} value={String(m.scheduled.value)} trend="neutral" delta="Next" compare={m.scheduled.nextLabel} />
       <MetricCard
         className="flex-1"
         label="Needs attention"
-        icon={alertTriangle}
+        icon={TriangleAlert}
         value={String(total)}
         trend="down"
         delta={`${m.attention.failed} failed`}
         compare={`${m.attention.reauth} need reauth`}
         tone={total > 0 ? 'warning' : 'default'}
       />
-      <MetricCard className="flex-1" label="Total views" icon={eyeIcon} value={m.views.value} trend="up" delta={`+${m.views.deltaPct}%`} compare={`vs. prev. ${days} days`} />
-      <MetricCard className="flex-1" label="Total engagement" icon={heartIcon} value={m.engagement.value} trend="up" delta={`+${m.engagement.deltaPct}%`} compare={`vs. prev. ${days} days`} />
+      <MetricCard className="flex-1" label="Total views" icon={Eye} value={m.views.value} trend="up" delta={`+${m.views.deltaPct}%`} compare={`vs. prev. ${days} days`} />
+      <MetricCard className="flex-1" label="Total engagement" icon={Heart} value={m.engagement.value} trend="up" delta={`+${m.engagement.deltaPct}%`} compare={`vs. prev. ${days} days`} />
     </div>
   )
 }
@@ -197,21 +188,21 @@ function TabletMetrics({ data, className }: { data: OverviewData; className?: st
   const card = 'w-[298px]'
   return (
     <div className={cn('flex-wrap gap-3', className)}>
-      <MetricCard className={card} label="Published" icon={sendIcon} value={String(m.published.value)} trend="up" delta={`+${m.published.delta}`} compare="posts" />
-      <MetricCard className={card} label="Scheduled" icon={calendarIcon} value={String(m.scheduled.value)} trend="neutral" delta="Next" compare={m.scheduled.nextAt} />
-      <MetricCard className={card} label="Needs attention" icon={alertTriangle} value={String(m.attention.failed + m.attention.reauth)} trend="down" delta={`${m.attention.failed} failed`} compare={`${m.attention.reauth} reauth`} />
-      <MetricCard className={card} label="Total views" icon={eyeIcon} value={m.views.value} trend="up" delta={`+${m.views.deltaPct}%`} compare="vs prev." />
-      <MetricCard className={card} label="Engagement" icon={heartIcon} value={m.engagement.value} trend="up" delta={`+${m.engagement.deltaPct}%`} compare="vs prev." />
-      <MetricCard className={card} label="Eng. rate" icon={activityIcon} value={`${m.engagementRate.value}%`} trend="up" delta={`+${m.engagementRate.deltaPt} pt`} compare="vs prev." />
+      <MetricCard className={card} label="Published" icon={Send} value={String(m.published.value)} trend="up" delta={`+${m.published.delta}`} compare="posts" />
+      <MetricCard className={card} label="Scheduled" icon={Calendar} value={String(m.scheduled.value)} trend="neutral" delta="Next" compare={m.scheduled.nextAt} />
+      <MetricCard className={card} label="Needs attention" icon={TriangleAlert} value={String(m.attention.failed + m.attention.reauth)} trend="down" delta={`${m.attention.failed} failed`} compare={`${m.attention.reauth} reauth`} />
+      <MetricCard className={card} label="Total views" icon={Eye} value={m.views.value} trend="up" delta={`+${m.views.deltaPct}%`} compare="vs prev." />
+      <MetricCard className={card} label="Engagement" icon={Heart} value={m.engagement.value} trend="up" delta={`+${m.engagement.deltaPct}%`} compare="vs prev." />
+      <MetricCard className={card} label="Eng. rate" icon={Activity} value={`${m.engagementRate.value}%`} trend="up" delta={`+${m.engagementRate.deltaPt} pt`} compare="vs prev." />
     </div>
   )
 }
 
 function CompactMetric({ label, value, note, positive }: { label: string; value: string; note: string; positive?: boolean }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-xl border bg-surface p-3.5 shadow-xs">
-      <p className="text-caption font-medium text-secondary">{label}</p>
-      <p className="text-h1 whitespace-nowrap text-primary">{value}</p>
+    <div className="flex min-w-0 flex-col gap-1 rounded-xl border bg-card p-3.5 shadow-xs">
+      <p className="text-caption font-medium text-muted-foreground">{label}</p>
+      <p className="text-h1 whitespace-nowrap text-foreground">{value}</p>
       <p className={cn('truncate text-caption font-medium', positive ? 'text-success-text' : 'text-tertiary')}>{note}</p>
     </div>
   )
@@ -229,69 +220,80 @@ function MobileMetrics({ data, className }: { data: OverviewData; className?: st
   )
 }
 
-/* ── Charts ────────────────────────────────────────────────────────── */
+/* ── Charts (shadcn Chart + Recharts) ──────────────────────────────── */
 
-const Y_TICKS = [
-  { label: '77K', line: 0.5, text: -7.5 },
-  { label: '58K', line: 55.5, text: 47.5 },
-  { label: '39K', line: 109.5, text: 101.5 },
-  { label: '19K', line: 164.5, text: 156.5 },
-  { label: '0K', line: 218.5, text: 210.5 },
-]
-/** x positions as a share of the 700px design width. */
-const X_TICKS = [
-  { label: 'Oct 23', left: 44 / 700 },
-  { label: 'Oct 30', left: 188.5 / 700 },
-  { label: 'Nov 6', left: 355 / 700 },
-  { label: 'Nov 13', left: 516 / 700 },
-  { label: 'Nov 21', left: 661 / 700 },
-]
+const chartConfig = {
+  views: { label: 'Views', color: 'var(--chart-1)' },
+  spark: { label: 'Views', color: 'var(--chart-1)' },
+  engagement: { label: 'Engagement', color: 'var(--chart-2)' },
+} satisfies ChartConfig
+
+const Y_MAX = 77_000
+const Y_TICKS = [0, Y_MAX / 4, Y_MAX / 2, (Y_MAX * 3) / 4, Y_MAX]
+const formatK = (v: number) => `${Math.round(v / 1000)}K`
+const formatDay = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+
+/** Five weekly x-axis labels, first and last included (Figma: Oct 23, Oct 30, Nov 6, Nov 13, Nov 21). */
+function xTicks(trend: TrendPoint[]) {
+  const last = trend.length - 1
+  return [0, 1, 2, 3, 4].map((i) => trend[i === 4 ? last : Math.floor((last * i) / 4)].date)
+}
+
+type AxisTickProps = { x?: number; y?: number; index?: number; visibleTicksCount?: number; payload?: { value: string } }
+
+/** Y labels sit flush left of the 44px gutter, vertically centred on their grid line. */
+function ValueTick({ y = 0, payload }: { y?: number; payload?: { value: number } }) {
+  return (
+    <text x={0} y={y} dy={4} textAnchor="start" className="fill-tertiary text-caption">
+      {formatK(payload?.value ?? 0)}
+    </text>
+  )
+}
+
+/** Figma pins the first date to the plot's left edge and the last to its right edge. */
+function DateTick({ x = 0, y = 0, index = 0, visibleTicksCount = 0, payload }: AxisTickProps) {
+  const anchor = index === 0 ? 'start' : index === visibleTicksCount - 1 ? 'end' : 'middle'
+  return (
+    <text x={x} y={y} dy={12} textAnchor={anchor} className="fill-tertiary text-caption">
+      {formatDay(payload?.value ?? '')}
+    </text>
+  )
+}
 
 function LegendDot({ className, label }: { className: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
       <span className={cn('size-2 rounded-[2px]', className)} />
-      <span className="text-caption font-medium text-secondary">{label}</span>
+      <span className="text-caption font-medium text-muted-foreground">{label}</span>
     </span>
   )
 }
 
-function PerformanceCard({ data, days, account, className }: { data: OverviewData; days: number; account: string; className?: string }) {
+function PerformanceCard({ data, trend, days, account, className }: { data: OverviewData; trend: TrendPoint[]; days: number; account: string; className?: string }) {
   const scope = ACCOUNT_OPTIONS.find((a) => a.value === account)?.label ?? 'All platforms'
   return (
     <Card className={className}>
-      <CardHeader
-        title="Views & engagement"
-        description={`${account === 'all' ? 'All platforms' : scope} · last ${days} days`}
-        actions={
-          <div className="flex items-center gap-4">
-            <LegendDot className="bg-chart-1" label="Views" />
-            <LegendDot className="bg-chart-2" label="Engagement" />
-          </div>
-        }
-      />
+      <CardHeader>
+        <CardTitle>Views &amp; engagement</CardTitle>
+        <CardDescription>
+          {account === 'all' ? 'All platforms' : scope} · last {days} days
+        </CardDescription>
+        <CardAction className="gap-4">
+          <LegendDot className="bg-chart-1" label="Views" />
+          <LegendDot className="bg-chart-2" label="Engagement" />
+        </CardAction>
+      </CardHeader>
       <div className="px-5 pt-2.5 pb-4">
-        <div className="relative h-60 w-full" role="img" aria-label={`Views and engagement over the last ${days} days`}>
-          {Y_TICKS.map((t) => (
-            <div key={t.label}>
-              <div className="absolute right-0 left-11 h-px bg-chart-grid" style={{ top: t.line }} />
-              <span className="absolute left-0 text-caption text-tertiary" style={{ top: t.text }}>
-                {t.label}
-              </span>
-            </div>
-          ))}
-          <img src={chartViews} alt="" className="absolute inset-0 block size-full max-w-none" draggable={false} />
-          <img src={chartEngagement} alt="" className="absolute inset-0 block size-full max-w-none" draggable={false} />
-          {X_TICKS.map((t, i) => (
-            <span
-              key={t.label}
-              className="absolute top-56 text-caption whitespace-nowrap text-tertiary"
-              style={i === X_TICKS.length - 1 ? { right: 0 } : { left: `${t.left * 100}%` }}
-            >
-              {t.label}
-            </span>
-          ))}
-        </div>
+        <ChartContainer config={chartConfig} className="aspect-auto h-60 w-full [&_.recharts-cartesian-axis-tick_text]:fill-tertiary" aria-label={`Views and engagement over the last ${days} days`}>
+          <AreaChart data={trend} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
+            <YAxis width={44} domain={[0, Y_MAX]} ticks={Y_TICKS} tickFormatter={formatK} axisLine={false} tickLine={false} tick={<ValueTick />} />
+            <XAxis dataKey="date" ticks={xTicks(trend)} tick={<DateTick />} axisLine={false} tickLine={false} tickMargin={4} interval={0} />
+            <ChartTooltip cursor={{ stroke: 'var(--border-strong)' }} content={<ChartTooltipContent indicator="dot" labelFormatter={(_, payload) => formatDay(String(payload?.[0]?.payload?.date ?? ''))} />} />
+            <Area dataKey="views" type="monotone" stroke="var(--color-views)" strokeWidth={2} fill="var(--color-views)" fillOpacity={0.08} activeDot={{ r: 3 }} />
+            <Area dataKey="engagement" type="monotone" stroke="var(--color-engagement)" strokeWidth={2} fill="var(--color-engagement)" fillOpacity={0.08} activeDot={{ r: 3 }} />
+          </AreaChart>
+        </ChartContainer>
       </div>
       <div className="flex border-t">
         {data.platformSplit.map((p) => (
@@ -300,7 +302,7 @@ function PerformanceCard({ data, days, account, className }: { data: OverviewDat
             <div className="flex min-w-0 flex-col">
               <span className="text-caption text-tertiary">{PLATFORM_LABEL[p.platform]}</span>
               <span className="flex items-center gap-1.5 font-medium">
-                <span className="text-body text-primary">{p.value}</span>
+                <span className="text-body text-foreground">{p.value}</span>
                 <span className={cn('text-caption', p.deltaPct >= 0 ? 'text-success-text' : 'text-danger-text')}>{pct(p.deltaPct)}</span>
               </span>
             </div>
@@ -311,39 +313,42 @@ function PerformanceCard({ data, days, account, className }: { data: OverviewDat
   )
 }
 
-function TrendCard({ variant, days, className }: { variant: 'tablet' | 'mobile'; days: number; className?: string }) {
+/** Tablet "Views & engagement" (200px) and mobile "Views" sparkline (110px): one views area, straight segments, no axes. */
+function TrendCard({ variant, trend, days, className }: { variant: 'tablet' | 'mobile'; trend: TrendPoint[]; days: number; className?: string }) {
   const tablet = variant === 'tablet'
   return (
     <Card className={cn(tablet ? 'gap-3 p-5' : 'gap-2.5 p-3.5', className)}>
       <div className="flex items-center gap-2">
-        <h3 className={tablet ? 'text-h3 text-primary' : 'text-body-sm font-medium text-primary'}>{tablet ? 'Views & engagement' : 'Views'}</h3>
+        <h3 className={tablet ? 'text-h3 text-foreground' : 'text-body-sm font-medium text-foreground'}>{tablet ? 'Views & engagement' : 'Views'}</h3>
         <div className="flex-1" />
         <span className="text-caption text-tertiary">Last {days} days</span>
       </div>
-      <img
-        src={tablet ? chartTablet : sparklineMobile}
-        alt={`Views over the last ${days} days`}
-        className={cn('block w-full max-w-none', tablet ? 'h-[200px]' : 'h-[110px]')}
-        draggable={false}
-      />
+      <ChartContainer config={chartConfig} className={cn('aspect-auto w-full', tablet ? 'h-[200px]' : 'h-[110px]')} aria-label={`Views over the last ${days} days`}>
+        <AreaChart data={trend} margin={{ top: 1, right: 1, bottom: 0, left: 1 }}>
+          <YAxis hide domain={[0, 200]} />
+          <Area dataKey="spark" type="linear" stroke="var(--color-views)" strokeWidth={2} strokeLinejoin="round" fill="var(--color-views)" fillOpacity={0.08} />
+        </AreaChart>
+      </ChartContainer>
     </Card>
   )
 }
 
 /* ── Needs attention ───────────────────────────────────────────────── */
 
-function AttentionAction({ item, size = 'sm' }: { item: AttentionItem; size?: 'sm' }) {
+function AttentionAction({ item }: { item: AttentionItem }) {
   const resolve = useResolveAttention()
   const pending = resolve.isPending && resolve.variables?.id === item.id
   if (item.action === 'details') {
     return (
-      <ButtonLink to="/monitoring" variant="secondary" size={size}>
-        Details
-      </ButtonLink>
+      <Button asChild variant="outline" size="sm">
+        <Link to="/monitoring/$jobId" params={{ jobId: item.id }}>
+          Details
+        </Link>
+      </Button>
     )
   }
   return (
-    <Button variant="secondary" size={size} disabled={pending} onClick={() => resolve.mutate(item)}>
+    <Button variant="outline" size="sm" disabled={pending} onClick={() => resolve.mutate(item)}>
       {item.action === 'retry' ? (pending ? 'Retrying…' : 'Retry') : pending ? 'Reconnecting…' : 'Reconnect'}
     </Button>
   )
@@ -352,23 +357,25 @@ function AttentionAction({ item, size = 'sm' }: { item: AttentionItem; size?: 's
 function AttentionCard({ items, className }: { items: AttentionItem[]; className?: string }) {
   return (
     <Card className={className}>
-      <CardHeader
-        title="Needs attention"
-        description={`${items.length} ${items.length === 1 ? 'item' : 'items'}`}
-        actions={
-          <ButtonLink to="/monitoring" variant="ghost" size="sm">
-            View all
-          </ButtonLink>
-        }
-      />
+      <CardHeader>
+        <CardTitle>Needs attention</CardTitle>
+        <CardDescription>
+          {items.length} {items.length === 1 ? 'item' : 'items'}
+        </CardDescription>
+        <CardAction>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/monitoring">View all</Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
       {items.length === 0 && <p className="border-t px-5 py-6 text-center text-body-sm text-tertiary">You’re all caught up.</p>}
       {items.map((item) => (
         <div key={item.id} className="flex items-start gap-3 border-t px-5 py-3">
-          <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', item.kind === 'failed' ? 'bg-danger-subtle' : 'bg-warning-subtle')}>
-            <Icon src={item.kind === 'failed' ? alertCircleDanger : refreshWarning} size={16} />
+          <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', item.kind === 'failed' ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning')}>
+            {item.kind === 'failed' ? <CircleAlert aria-hidden className="size-4" /> : <RefreshCw aria-hidden className="size-4" />}
           </span>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <p className="truncate text-body-sm font-medium text-primary">{item.title}</p>
+            <p className="truncate text-body-sm font-medium text-foreground">{item.title}</p>
             <p className="truncate text-caption text-tertiary">{item.context}</p>
             {item.kind === 'failed' && <p className="truncate text-caption text-danger-text">{item.reason}</p>}
           </div>
@@ -385,9 +392,9 @@ function AttentionListCompact({ items, className }: { items: AttentionItem[]; cl
   return (
     <Card className={className}>
       <div className="flex items-center px-5 py-3.5">
-        <h3 className="text-h3 text-primary">Needs attention</h3>
+        <h3 className="text-h3 text-foreground">Needs attention</h3>
         <div className="flex-1" />
-        <Link to="/monitoring" className="text-caption font-medium text-accent-text hover:underline">
+        <Link to="/monitoring" className="text-caption font-medium text-primary-text hover:underline">
           View all
         </Link>
       </div>
@@ -396,7 +403,7 @@ function AttentionListCompact({ items, className }: { items: AttentionItem[]; cl
         <div key={item.id} className="flex items-center gap-3 border-t px-5 py-3">
           <PlatformLogo platform={item.platform} size={22} />
           <div className="flex min-w-0 flex-1 flex-col gap-px">
-            <p className="truncate text-body-sm font-medium text-primary">{item.title}</p>
+            <p className="truncate text-body-sm font-medium text-foreground">{item.title}</p>
             <p className={cn('truncate text-caption', item.kind === 'failed' ? 'text-danger-text' : 'text-warning-text')}>{item.reason}</p>
           </div>
           <AttentionAction item={item} />
@@ -413,7 +420,7 @@ function PostRow({ post, meta, published }: { post: OverviewData['upcoming'][num
     <div className="flex items-center gap-3 border-t px-5 py-2.5">
       <Thumbnail tone={post.tone} ratio={1} className="size-11 rounded-md" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="truncate text-body-sm font-medium text-primary">{post.title}</p>
+        <p className="truncate text-body-sm font-medium text-foreground">{post.title}</p>
         <p className="truncate text-caption text-tertiary">{meta}</p>
       </div>
       <PlatformStack platforms={post.platforms} size={20} />
@@ -425,15 +432,18 @@ function PostRow({ post, meta, published }: { post: OverviewData['upcoming'][num
 function UpcomingCard({ posts, total, className }: { posts: OverviewData['upcoming']; total: number; className?: string }) {
   return (
     <Card className={className}>
-      <CardHeader
-        title="Upcoming scheduled"
-        description={`Next 7 days · ${total} posts`}
-        actions={
-          <ButtonLink to="/calendar" variant="ghost" size="sm" icon={arrowRight}>
-            Open calendar
-          </ButtonLink>
-        }
-      />
+      <CardHeader>
+        <CardTitle>Upcoming scheduled</CardTitle>
+        <CardDescription>Next 7 days · {total} posts</CardDescription>
+        <CardAction>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/calendar">
+              <ArrowRight />
+              Open calendar
+            </Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
       {posts.map((post) => (
         <PostRow key={post.id} post={post} meta={post.when} />
       ))}
@@ -444,15 +454,18 @@ function UpcomingCard({ posts, total, className }: { posts: OverviewData['upcomi
 function RecentCard({ posts, className }: { posts: OverviewData['recent']; className?: string }) {
   return (
     <Card className={className}>
-      <CardHeader
-        title="Recently published"
-        description="Last 24 hours"
-        actions={
-          <ButtonLink to="/monitoring" variant="ghost" size="sm" icon={arrowRight}>
-            Monitoring
-          </ButtonLink>
-        }
-      />
+      <CardHeader>
+        <CardTitle>Recently published</CardTitle>
+        <CardDescription>Last 24 hours</CardDescription>
+        <CardAction>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/monitoring">
+              <ArrowRight />
+              Monitoring
+            </Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
       {posts.map((post) => (
         <PostRow key={post.id} post={post} meta={post.meta} published />
       ))}
@@ -464,9 +477,9 @@ function UpcomingCompact({ posts, className }: { posts: OverviewData['upcoming']
   return (
     <Card className={className}>
       <div className="flex items-center px-3.5 py-3">
-        <h3 className="text-body-sm font-medium text-primary">Upcoming</h3>
+        <h3 className="text-body-sm font-medium text-foreground">Upcoming</h3>
         <div className="flex-1" />
-        <Link to="/calendar" className="text-caption font-medium text-accent-text hover:underline">
+        <Link to="/calendar" className="text-caption font-medium text-primary-text hover:underline">
           See all
         </Link>
       </div>
@@ -474,7 +487,7 @@ function UpcomingCompact({ posts, className }: { posts: OverviewData['upcoming']
         <div key={post.id} className="flex items-center gap-2.5 border-t px-3.5 py-2.5">
           <Thumbnail tone={post.tone} ratio={1} className="size-10 rounded-md" />
           <div className="flex min-w-0 flex-1 flex-col gap-px">
-            <p className="truncate text-body-sm font-medium text-primary">{post.title}</p>
+            <p className="truncate text-body-sm font-medium text-foreground">{post.title}</p>
             <p className="truncate text-caption text-tertiary">{post.whenShort}</p>
           </div>
           <div className="flex shrink-0 items-center gap-[3px]">

@@ -1,12 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/route-states'
-import { Topbar } from '@/components/layout/topbar'
+import { integrationsQueryOptions } from '@/features/settings/api'
+import { IntegrationsSettingsPage } from '@/features/settings/integrations-page'
 
 export const Route = createFileRoute('/_app/settings/integrations/')({
-  component: () => (
-    <>
-      <Topbar breadcrumb={[{ label: 'Settings', to: '/settings' }, { label: 'Integrations' }]} />
-      <PagePlaceholder title="Social integrations" />
-    </>
-  ),
+  loader: ({ context }) => context.queryClient.ensureQueryData(integrationsQueryOptions),
+  head: () => ({ meta: [{ title: 'Social platforms · Settings · Relay' }] }),
+  component: IntegrationsSettingsPage,
 })

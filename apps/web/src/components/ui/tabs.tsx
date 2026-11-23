@@ -1,50 +1,97 @@
-import { createLink, type LinkComponent } from '@tanstack/react-router'
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from 'react'
-import { cn } from '@/lib/cn'
+"use client"
 
-/** Row that holds Tabs; the 1px rule sits under the 2px indicators. */
-export function TabList({ className, children }: { className?: string; children: ReactNode }) {
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
+import { Tabs as TabsPrimitive } from "radix-ui"
+
+function Tabs({
+  className,
+  orientation = "horizontal",
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return (
-    <div role="tablist" className={cn('flex items-end gap-5 border-b', className)}>
-      {children}
-    </div>
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      data-orientation={orientation}
+      orientation={orientation}
+      className={cn(
+        "group/tabs flex gap-2 data-[orientation=horizontal]:flex-col",
+        className
+      )}
+      {...props}
+    />
   )
 }
 
-function TabInner({ active, children }: { active: boolean; children: ReactNode }) {
+/**
+ * - `line`    Figma "Tab" (7:179): underline tabs on a 1px border-b rule,
+ *             20px gap, active = text/primary + 2px bg/inverse bar.
+ * - `segment` Figma "Segment" (7:186) in a bg/subtle container with 2px
+ *             padding, active = bg/surface + shadow/sm.
+ */
+const tabsListVariants = cva(
+  "group/tabs-list inline-flex w-fit items-center text-muted-foreground group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+  {
+    variants: {
+      variant: {
+        segment: "gap-0.5 rounded-lg bg-subtle p-0.5",
+        line: "w-full items-end justify-start gap-5 border-b",
+      },
+    },
+    defaultVariants: {
+      variant: "segment",
+    },
+  }
+)
+
+function TabsList({
+  className,
+  variant = "segment",
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List> &
+  VariantProps<typeof tabsListVariants>) {
   return (
-    <>
-      <span className={cn('flex items-center gap-1.5 px-0.5 py-2.5 text-body font-medium whitespace-nowrap', active ? 'text-primary' : 'text-secondary group-hover:text-primary')}>
-        {children}
-      </span>
-      <span className={cn('h-0.5 w-full', active ? 'bg-inverse' : 'bg-transparent')} />
-    </>
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      data-variant={variant}
+      className={cn(tabsListVariants({ variant }), className)}
+      {...props}
+    />
   )
 }
 
-type TabProps = ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
-
-/** Figma "Tab" (state-driven). */
-export function Tab({ active, className, children, type = 'button', ...props }: TabProps) {
+function TabsTrigger({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
   return (
-    <button type={type} role="tab" aria-selected={active} className={cn('group -mb-px flex flex-col items-center outline-none', className)} {...props}>
-      <TabInner active={active}>{children}</TabInner>
-    </button>
+    <TabsPrimitive.Trigger
+      data-slot="tabs-trigger"
+      className={cn(
+        "relative inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // segment
+        "group-data-[variant=segment]/tabs-list:h-7 group-data-[variant=segment]/tabs-list:rounded-md group-data-[variant=segment]/tabs-list:px-2.5 group-data-[variant=segment]/tabs-list:text-body-sm group-data-[variant=segment]/tabs-list:text-muted-foreground group-data-[variant=segment]/tabs-list:hover:text-foreground group-data-[variant=segment]/tabs-list:data-[state=active]:bg-background group-data-[variant=segment]/tabs-list:data-[state=active]:text-foreground group-data-[variant=segment]/tabs-list:data-[state=active]:shadow-sm",
+        // line
+        "group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:border-b-2 group-data-[variant=line]/tabs-list:border-transparent group-data-[variant=line]/tabs-list:px-0.5 group-data-[variant=line]/tabs-list:py-2.5 group-data-[variant=line]/tabs-list:text-body group-data-[variant=line]/tabs-list:text-muted-foreground group-data-[variant=line]/tabs-list:hover:text-foreground group-data-[variant=line]/tabs-list:data-[state=active]:border-inverse group-data-[variant=line]/tabs-list:data-[state=active]:text-foreground",
+        className
+      )}
+      {...props}
+    />
   )
 }
 
-type TabAnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & { ref?: Ref<HTMLAnchorElement>; 'data-status'?: string }
-
-function TabAnchor({ className, children, ...props }: TabAnchorProps) {
-  const active = props['data-status'] === 'active'
+function TabsContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
-    <a role="tab" aria-selected={active} className={cn('group -mb-px flex flex-col items-center outline-none', className)} {...props}>
-      <TabInner active={active}>{children}</TabInner>
-    </a>
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      className={cn("flex-1 outline-none", className)}
+      {...props}
+    />
   )
 }
 
-const CreatedTabLink = createLink(TabAnchor)
-
-/** Figma "Tab" bound to a route — active when the route matches. */
-export const TabLink: LinkComponent<typeof TabAnchor> = (props) => <CreatedTabLink preload="intent" {...props} />
+export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }

@@ -1,12 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PagePlaceholder } from '@/components/layout/route-states'
-import { Topbar } from '@/components/layout/topbar'
+import { driveQueryOptions } from '@/features/drive/api'
+import { DrivePage } from '@/features/drive/drive-page'
 
 export const Route = createFileRoute('/_app/settings/integrations/drive')({
-  component: () => (
-    <>
-      <Topbar breadcrumb={[{ label: 'Settings', to: '/settings' }, { label: 'Integrations', to: '/settings/integrations' }, { label: 'Google Drive' }]} />
-      <PagePlaceholder title="Google Drive" />
-    </>
-  ),
+  loader: ({ context }) => context.queryClient.ensureQueryData(driveQueryOptions),
+  head: () => ({ meta: [{ title: 'Google Drive · Settings · Relay' }] }),
+  component: DrivePage,
 })
